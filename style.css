@@ -1,0 +1,89 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: Arial, sans-serif;
+}
+
+#desktop {
+    background: #008080;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#taskbar {
+    background: #333;
+    height: 50px;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    padding: 0 10px;
+}
+
+#taskbar button {
+    margin-right: 10px;
+    color: white;
+    background: #555;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.window {
+    background: #fff;
+    border: 1px solid #ccc;
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    width: 300px;
+    display: none;
+    flex-direction: column;
+}
+
+.window-title {
+    background: #0078D7;
+    color: white;
+    padding: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.window-body {
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.folder {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+}
+
+li:hover {
+    background: #f0f0f0;
+}
+
+#notepad-content {
+    width: 100%;
+    height: 200px;
+    resize: none;
+}
+
+#notepad button {
+    margin-top: 10px;
+}

@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake OS</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: Arial, sans-serif;
+        background: url('https://d7hftxdivxxvm.cloudfront.net/?quality=80&resize_to=width&src=https%3A%2F%2Fartsy-media-uploads.s3.amazonaws.com%2F2RNK1P0BYVrSCZEy_Sd1Ew%252F3417757448_4a6bdf36ce_o.jpg&width=910') no-repeat center center fixed;
+        background-size: cover;
+      }
+
+      #desktop {
+        width: 100%;
+        height: calc(100% - 50px);
+        /* Height minus taskbar height */
+        position: relative;
+        overflow: hidden;
+        /* Hide overflow from taskbar */
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        /* Responsive grid layout */
+        gap: 20px;
+        /* Gap between icons */
+        padding: 20px;
+        /* Padding around the grid */
+      }
+
+      .icon {
+        text-align: center;
+        cursor: pointer;
+        position: relative;
+      }
+
+      .file-icon,
+      .folder-icon,
+      .exe-icon,
+      .drive-icon {
+        width: 80px;
+        height: auto;
+      }
+
+      .file-name {
+        color: white;
+        font-size: 12px;
+        margin-top: 5px;
+      }
+
+      #taskbar {
+        background: #1A1A1A;
+        height: 50px;
+        width: 100%;
+        position: fixed;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: start;
+        padding: 0 10px;
+        box-shadow: 0px -3px 10px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        /* Ensure taskbar is above other elements */
+      }
+
+      #taskbar.active {
+        background: #343434;
+        /* Darker shade to indicate active state */
+      }
+
+      #taskbar button {
+        margin-right: 10px;
+        color: white;
+        background: #2D2D2D;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        outline: none;
+        user-select: none;
+        /* Prevent text selection */
+      }
+
+      .window {
+        background: #fff;
+        border: 1px solid #ccc;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        width: 300px;
+        display: none;
+        flex-direction: column;
+        z-index: 100;
+      }
+
+      .window-body {
+        height: 100%;
+        /* Ensure the body fills the entire window */
+      }
+
+      .window-body textarea {
+        width: 100%;
+        height: 80%;
+        /* Fixed height to prevent resizing */
+        border: none;
+        outline: none;
+        padding: 10px;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+      }
+
+      .window.minimized {
+        display: none;
+      }
+
+      .window-title {
+        background: #0078D7;
+        color: white;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        font-weight: bold;
+        user-select: none;
+        cursor: move;
+      }
+
+      .window-title button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        outline: none;
+      }
+
+      .window-title button:hover {
+        background: #005DAD;
+      }
+
+      .window-title button:nth-child(2) {
+        margin-left: auto;
+        /* Moves the minimize button to the far right */
+      }
+
+      /* Styles for the "Create File" button */
+      .window-body button {
+        color: black;
+        background-color: rgb(0 0 0 / 24%);
+        border: none;
+        padding: 10px 13px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: bold;
+        outline: none;
+      }
+
+      .window-body button:hover {
+        background-color: #005DAD;
+      }
+
+      /* Styles for the separating line */
+      .window-body hr {
+        border-top: 1px solid #ccc;
+        /* Adjust as needed */
+        margin-top: 0px;
+        margin-bottom: 0px;
+      }
+
+      .folder {
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1001;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 400px;
+        box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .modal-header button {
+        background: none;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      .modal-body {
+        padding: 10px 0;
+      }
+
+      .modal-body input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 10px;
+      }
+
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .modal-footer button {
+        padding: 10px 20px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      li {
+        padding: 8px 12px;
+        border-bottom: 1px solid #ccc;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      li:hover {
+        background: #f0f0f0;
+      }
+
+      #notepad {
+        background: #fff;
+        border: 1px solid #ccc;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        width: 300px;
+        height: 200px;
+        display: none;
+        z-index: 100;
+      }
+
+      #notepad.minimized {
+        display: none;
+      }
+
+      #notepad .window-title {
+        background: #0078d7;
+        color: white;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        font-weight: bold;
+        user-select: none;
+        cursor: move;
+      }
+
+      #notepad .window-title button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        outline: none;
+      }
+
+      #notepad .window-title button:hover {
+        background: #005dad;
+      }
+
+      #notepad .window-body button {
+        padding: 2px 10px;
+      }
+
+      #notepad-text {
+        width: 100%;
+        height: 82%;
+        border: none;
+        outline: none;
+        padding: 0px;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        resize: none;
+        /* Prevent resizing of the textarea */
+      }
+
+      #code-editor {
+        background: #1A1A1A;
+        border: 1px solid #000;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        width: 300px;
+        height: 200px;
+        display: none;
+        z-index: 100;
+      }
+
+      #code-editor.minimized {
+        display: none;
+      }
+
+      #code-editor .window-title {
+        background: #333;
+        color: white;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        font-weight: bold;
+        user-select: none;
+        cursor: move;
+      }
+
+      #code-editor .window-title button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        outline: none;
+      }
+
+      #code-editor .window-title button:hover {
+        background: #555;
+      }
+
+      #code-editor .window-body button {
+        padding: 2px 10px;
+        background: #444;
+        color: #FFF;
+      }
+
+      #code-editor-text {
+        width: 100%;
+        height: 82%;
+        border: none;
+        outline: none;
+        padding: 0px;
+        color: #FFF;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        background: #222;
+        resize: none;
+        /* Prevent resizing of the textarea */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="desktop"></div>
+    <div id="taskbar">
+      <button onclick="openFileSystem()">File System</button>
+      <button onclick="openNotepad()">Notepad</button>
+    </div>
+    <div class="window" id="file-system">
+      <div class="window-title draggable" onmousedown="dragMouseDown(event)">
+        <span id="window-title">File System</span>
+        <button onclick="minimizeWindow('file-system')">-</button>
+        <button onclick="closeWindow('file-system')">X</button>
+      </div>
+      <div class="window-body">
+        <button onclick="createFileOrFolder()">Create File</button>
+        <hr>
+        <ul id="file-list"></ul>
+      </div>
+    </div>
+    <div class="window" id="notepad" style="left: 512px; top: 312px;">
+      <div class="window-title draggable" onmousedown="dragMouseDown(event)">
+        <span id="notepad-title">Notepad</span>
+        <button onclick="minimizeWindow('notepad')">-</button>
+        <button onclick="closeWindow('notepad')">X</button>
+      </div>
+      <div class="window-body">
+        <button onclick="openFileInNotepad()">Open File</button>
+        <button onclick="saveNotepad()">Save File</button>
+        <button onclick="openCodeEditor()">Code Editor</button>
+        <textarea id="notepad-text" placeholder="Write some text, plain text, anything! [.txt, .json, .raw, .data]" style="width: 100%; height: 88%; border: none; outline: none; padding: 0px; font-family: Arial, sans-serif; font-size: 14px;"></textarea>
+      </div>
+    </div>
+    <div class="window" id="code-editor" style="left: 512px; top: 312px;">
+      <div class="window-title draggable" onmousedown="dragMouseDown(event)">
+        <span id="code-editor-title">Code Editor</span>
+        <button onclick="minimizeWindow('code-editor')">-</button>
+        <button onclick="closeWindow('code-editor')">X</button>
+      </div>
+      <div class="window-body">
+        <button onclick="openNotepad()">←</button>
+        <button onclick="openFileInCodeEditor()">Open File</button>
+        <button onclick="saveCodeEditor()">Save File</button>
+        <textarea id="code-editor-text" placeholder="Write some javascript here, run the file to see it! [.ch, .exe]" style="width: 100%; height: 88%; border: none; outline: none; padding: 0px; font-family: Arial, sans-serif; font-size: 14px;"></textarea>
+      </div>
+    </div>
+    <div id="alert-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span id="alert-title">Alert</span>
+          <button onclick="closeAlertModal()">X</button>
+        </div>
+        <div class="modal-body">
+          <p id="alert-message"></p>
+          <input type="text" id="alert-input" style="display:none;" />
+        </div>
+        <div class="modal-footer">
+          <button onclick="confirmAlert()">OK</button>
+          <button onclick="cancelAlert()">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Initialize Fake OS
+      document.addEventListener("DOMContentLoaded", () => {
+        initializeFakeOS();
+      });
+      let currentDirectory = []; // Array to track current directory path
+      // Function to initialize Fake OS
+      function initializeFakeOS() {
+        openFileSystem(); // Load the initial file system
+        closeWindow("file-system")
+      }
+      // Function to open file system window
+      function openFileSystem() {
+        document.getElementById('file-system').style.display = 'flex';
+        loadFileSystem();
+      }
+      // Function to close window by ID
+      function closeWindow(windowId) {
+        document.getElementById(windowId).style.display = 'none';
+      }
+      // Function to minimize window
+      function minimizeWindow(windowId) {
+        document.getElementById(windowId).style.display = 'none';
+        document.getElementById('taskbar').classList.add('active');
+      }
+      // Function to restore window from taskbar
+      function restoreWindow(windowId) {
+        let windowElement = document.getElementById(windowId);
+        if (windowElement) {
+          windowElement.style.display = 'flex';
+          document.getElementById('taskbar').classList.remove('active');
+        }
+      }
+      // Function to go to the root directory
+      function goToRoot() {
+        currentDirectory = []; // Reset current directory to root
+        loadFileSystem(); // Load the root directory contents
+      }
+
+      function loadFileSystem() {
+        restoreWindow('file-system');
+        let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+        const fileList = document.getElementById('file-list');
+        fileList.innerHTML = '';
+        // Add ".." button if not in root directory
+        if (currentDirectory.length > 0) {
+          let listItem = document.createElement('li');
+          listItem.textContent = "..";
+          listItem.classList.add('folder');
+          listItem.onclick = () => goBack();
+          fileList.appendChild(listItem);
+        }
+        const rootIcon = document.createElement('div');
+        rootIcon.className = 'icon';
+        rootIcon.style = 'position: relative; text-align: center;'
+        rootIcon.onclick = goToRoot;
+        rootIcon.innerHTML = `
+						<img src="https://i.imgur.com/6y3bHsn_d.webp?maxwidth=760&fidelity=grand" class="drive-icon" alt="Drive">
+							<div class="file-name">F:/</div>`;
+        files.forEach(file => {
+          if (isInCurrentDirectory(file.path)) {
+            let listItem = document.createElement('li');
+            listItem.textContent = file.name;
+            if (file.contents) {
+              listItem.classList.add('folder');
+              listItem.onclick = () => openFolder(file.name);
+            } else if (file.data) {
+              listItem.onclick = () => openFile(file.name);
+            } else if (file.code) {
+              listItem.onclick = () => runExe(file.name);
+            }
+            fileList.appendChild(listItem);
+          }
+        });
+        updateWindowTitle(); // Update window title with current directory
+        // Dynamically add icons to desktop
+        const desktopIconsContainer = document.getElementById('desktop');
+        desktopIconsContainer.innerHTML = ''; // Clear existing icons
+        desktopIconsContainer.appendChild(rootIcon);
+        files.forEach(file => {
+          if (isInCurrentDirectory(file.path)) {
+            const icon = document.createElement('div');
+            icon.className = 'icon';
+            icon.style.position = 'relative'; // Ensure position is relative
+            icon.style.textAlign = 'center'; // Center align text
+            const iconImg = document.createElement('img');
+            if (file.contents) {
+              iconImg.src = 'https://i.imgur.com/RjMRqmK_d.webp?maxwidth=760&fidelity=grand'; // Folder icon URL
+              iconImg.className = 'folder-icon';
+            } else if (file.data) {
+              iconImg.src = 'https://i.imgur.com/6RErgJC_d.webp?maxwidth=760&fidelity=grand'; // File icon URL
+              iconImg.className = 'file-icon';
+            } else if (file.code) {
+              iconImg.src = 'https://i.imgur.com/fbKtH6N.png'; // File icon URL
+              iconImg.className = 'exe-icon';
+            }
+            iconImg.alt = file.name;
+            icon.appendChild(iconImg);
+            // Add file name below the icon
+            const fileName = document.createElement('div');
+            fileName.className = 'file-name';
+            fileName.textContent = file.name;
+            icon.appendChild(fileName);
+            desktopIconsContainer.appendChild(icon);
+            // Add click event to open file or folder on desktop icon click
+            icon.addEventListener('dblclick', () => {
+              if (file.contents) {
+                openFolder(file.name);
+              } else if (file.data) {
+                openFile(file.name);
+              } else if (file.code) {
+                runExe(file.name);
+              }
+            });
+          }
+        });
+      }
+
+      function sleep(milliseconds) {
+        var start = new Date().getTime();
+        for (var i = 0; i < 1e7; i++) {
+          if ((new Date().getTime() - start) > milliseconds) {
+            break;
+          }
+        }
+      }
+      // Function to update window title
+      function updateWindowTitle() {
+        let currentPath = 'F:/'; // Start with the drive prefix
+        if (currentDirectory.length > 0) {
+          currentPath += currentDirectory.join('/') + '/';
+        }
+        document.getElementById('window-title').textContent = 'File System | ' + currentPath;
+      }
+      // JavaScript for Alert Modal
+      let alertCallback = null;
+      let alertInputRequired = false;
+      // Function to show alert modal
+      function showAlert(title, message, inputRequired = false, callback = null) {
+        console.log("Showing alert:", message);
+        const modal = document.getElementById('alert-modal');
+        const alertTitle = document.getElementById('alert-title');
+        const alertMessage = document.getElementById('alert-message');
+        const alertInput = document.getElementById('alert-input');
+        alertTitle.textContent = title;
+        alertMessage.textContent = message;
+        alertInput.style.display = inputRequired ? 'block' : 'none';
+        alertInput.value = ''; // Clear any previous input
+        alertInputRequired = inputRequired;
+        alertCallback = callback;
+        modal.style.display = 'block';
+      }
+      // Function to close alert modal
+      function closeAlertModal() {
+        const modal = document.getElementById('alert-modal');
+        modal.style.display = 'none';
+        alertCallback = null;
+      }
+      // Function to confirm alert (OK button)
+      function confirmAlert() {
+        const alertInput = document.getElementById('alert-input');
+        const result = alertInputRequired ? alertInput.value : true;
+        if (alertCallback) alertCallback(result);
+        closeAlertModal();
+      }
+      // Function to cancel alert (Cancel button)
+      function cancelAlert() {
+        if (alertCallback) alertCallback(false);
+        closeAlertModal();
+      }
+      // Example usage:
+      // showAlert("FakeOS8", "This is an alert!", false, result => console.log("Alert closed:", result));
+      // showAlert("FakeOS8", "Enter your name:", true, result => console.log("Input received:", result));
+      function normalizePath(path) {
+        // Normalize path and ensure it starts with 'F:/'
+        if (!path.startsWith('F:/')) {
+          path = 'F:/' + path; // Add 'F:/' at the beginning
+        }
+        path = path.replace(/\/$/, ''); // Remove trailing slash if any
+        return path;
+      }
+      // Function to check if file name has extension
+      function hasFileExtension(fileName) {
+        // Check if fileName has an extension
+        return fileName.includes('.') && !fileName.endsWith('.');
+      }
+      // Function to get parent folder from path
+      function getParentFolder(path, files) {
+        if (currentDirectory.length === 0) {
+          return null; // No parent folder in root directory
+        }
+        // Construct full path of the parent folder
+        let parentFolderPath = 'F:/' + currentDirectory.join('/');
+        // Find the parent folder in the files array
+        return files.find(folder => folder.path === parentFolderPath && folder.name === currentDirectory[currentDirectory.length - 1]);
+      }
+      // Function to create file or folder
+      function createFileOrFolder() {
+        console.log("Creating file or folder...");
+        const name = prompt("Enter file or folder name:");
+        if (name) {
+          let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+          let path = 'F:/' + currentDirectory.join('/');
+          if (!path.endsWith('/')) {
+            path += '/';
+          }
+          // Check if the file or folder already exists
+          if (files.some(file => file.name === name && file.path === path)) {
+            alert(`File or folder '${name}' already exists at '${path}'.`);
+            return;
+          }
+          // Create file or folder object
+          let isFolder = !hasFileExtension(name);
+          let newEntry = {
+            name,
+            path
+          };
+          if (isFolder) {
+            newEntry.contents = [];
+          } else {
+            const data = prompt("Enter data for the file (use \\n for line breaks):");
+            newEntry.data = data ? data.replace(/\\n/g, '\n') : "";
+          }
+          files.push(newEntry);
+          // Update contents array of parent folder, if applicable
+          let parentFolder = getParentFolder(path, files);
+          if (parentFolder) {
+            parentFolder.contents = parentFolder.contents || [];
+            parentFolder.contents.push(newEntry);
+          }
+          localStorage.setItem('fakeOS_files', JSON.stringify(files));
+          console.log(`File or folder created: ${name} at ${path}`);
+          loadFileSystem();
+        }
+      }
+      // Function to open file
+      function openFile(fileName) {
+        console.log(`Opening file: ${fileName}`);
+        let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+        let file = files.find(file => file.name === fileName && isInCurrentDirectory(file.path));
+        if (file) {
+          alert(`File content:\n${file.data}`);
+        } else {
+          alert(`File '${fileName}' not found.`);
+        }
+      }
+      // Function to open folder
+      function openFolder(folderName) {
+        console.log(`Opening folder: ${folderName}`);
+        currentDirectory.push(folderName); // Change directory to the selected folder
+        loadFileSystem();
+      }
+
+      function runExe(fileName) {
+        console.log("Running", fileName);
+        let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+        let file = files.find(file => file.name === fileName && isInCurrentDirectory(file.path));
+        if (file && file.code) {
+          try {
+            eval(file.code); // Assuming file.code contains the script to be executed
+            console.log("Execution successful.");
+          } catch (error) {
+            showAlert("Error!", "Error executing script: " + error, false);
+            console.error("Error executing script:", error);
+            return
+          }
+        } else {
+          showAlert("Executable file '" + fileName + "' not found or does not contain executable code.", false);
+        }
+      }
+      // Function to go back one level in directory
+      function goBack() {
+        console.log("Going back one level...");
+        currentDirectory.pop(); // Go back one level in the directory
+        loadFileSystem();
+      }
+
+      function openNotepad() {
+        document.getElementById('notepad').style.display = 'flex';
+        document.getElementById('code-editor').style.display = 'none';
+        restoreWindow('notepad');
+      }
+
+      function openFileInNotepad() {
+        let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+        let fileName = prompt("Enter file name to open:");
+        if (fileName) {
+          let path = 'F:/' + currentDirectory.join('/');
+          if (!path.endsWith('/')) {
+            path += '/';
+          }
+          let file = files.find(file => file.name === fileName && file.path === path);
+          if (file && file.data) {
+            document.getElementById('notepad-text').value = file.data;
+          } else {
+            alert(`File '${fileName}' not found or has no data.`);
+          }
+        }
+      }
+      // Function to save text to a file in Notepad
+      function saveNotepad() {
+        let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+        showAlert("Notepad", "Enter file name to save", true, (fileName) => {
+          if (fileName) {
+            if (!fileName.endsWith(".ch") || fileName.endsWith(".exe")) {
+              alert("Error creating file: code file types must end in '.txt', '.json', '.data', or '.raw'.", false);
+              return
+            }
+            let path = 'F:/' + currentDirectory.join('/');
+            if (!path.endsWith('/')) {
+              path += '/';
+            }
+            // Check if the file already exists
+            if (files.some(file => file.name === fileName && file.path === path)) {
+              if (!confirm(`File '${fileName}' already exists. Do you want to overwrite it?`)) {
+                return;
+              }
+            }
+            // Create or update the file
+            let existingFile = files.find(file => file.name === fileName && file.path === path);
+            if (existingFile) {
+              existingFile.data = document.getElementById('notepad-text').value;
+            } else {
+              files.push({
+                name: fileName,
+                path: path,
+                data: document.getElementById('notepad-text').value
+              });
+            }
+            localStorage.setItem('fakeOS_files', JSON.stringify(files));
+            console.log(`File saved: ${fileName} at ${path}`);
+            loadFileSystem(); // Update file system after saving
+          }
+        });
+      }
+
+      function openCodeEditor() {
+        document.getElementById('notepad').style.display = 'none';
+        document.getElementById('code-editor').style.display = 'flex';
+        restoreWindow('code-editor');
+      }
+
+      function openFileInCodeEditor() {
+        let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+        let fileName = prompt("Enter file name to open:");
+        if (fileName) {
+          let path = 'F:/' + currentDirectory.join('/');
+          if (!path.endsWith('/')) {
+            path += '/';
+          }
+          let file = files.find(file => file.name === fileName && file.path === path);
+          if (file && file.code) {
+            document.getElementById('code-editor-text').value = file.code;
+          } else {
+            alert(`File '${fileName}' not found or has no code.`);
+          }
+        }
+      }
+
+      function saveCodeEditor() {
+        let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+        showAlert("Code Editor", "Enter file name to save", true, (fileName) => {
+          if (fileName) {
+            if (!fileName.endsWith(".ch") || fileName.endsWith(".exe")) {
+              alert("Error creating file: code file types must end in '.ch' or '.exe'", false);
+              return
+            }
+            let path = 'F:/' + currentDirectory.join('/');
+            if (!path.endsWith('/')) {
+              path += '/';
+            }
+            // Check if the file already exists
+            if (files.some(file => file.name === fileName && file.path === path)) {
+              if (!confirm(`File '${fileName}' already exists. Do you want to overwrite it?`)) {
+                return;
+              }
+            }
+            // Create or update the file
+            let existingFile = files.find(file => file.name === fileName && file.path === path);
+            if (existingFile) {
+              existingFile.code = document.getElementById('code-editor-text').value;
+            } else {
+              files.push({
+                name: fileName,
+                path: path,
+                code: document.getElementById('code-editor-text').value
+              });
+            }
+            localStorage.setItem('fakeOS_files', JSON.stringify(files));
+            console.log(`File saved: ${fileName} at ${path}`);
+            loadFileSystem(); // Update file system after saving
+          }
+        });
+      }
+      // Function to check if file path is in current directory
+      function isInCurrentDirectory(filePath) {
+        // Handle root directory case
+        if (currentDirectory.length === 0) {
+          return filePath === 'F:/';
+        }
+        // Normalize filePath to ensure it starts with 'F:/'
+        if (!filePath.startsWith('F:/')) {
+          filePath = 'F:/' + filePath;
+        }
+        // Construct the current directory path
+        let currentPath = 'F:/' + currentDirectory.join('/');
+        if (!currentPath.endsWith('/')) {
+          currentPath += '/';
+        }
+        // Check if filePath matches the current directory exactly
+        return filePath.startsWith(currentPath) && filePath.split('/').length === currentPath.split('/').length;
+      }
+
+      function findParentWithClass(element, className) {
+        while (element && !element.classList.contains(className)) {
+          element = element.parentElement;
+        }
+        return element;
+      }
+      // Function to handle mouse down event for dragging
+      function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // Get the window element
+        let windowElement = findParentWithClass(e.target, 'window');
+        if (!windowElement) return; // Check if a 'window' element is found
+        // Get initial mouse cursor position
+        let initialX = e.clientX;
+        let initialY = e.clientY;
+        // Get initial window position
+        let initialLeft = windowElement.offsetLeft;
+        let initialTop = windowElement.offsetTop;
+        // Calculate the new window position on mouse move
+        document.onmousemove = function(e) {
+          e = e || window.event;
+          e.preventDefault();
+          // Calculate the new window position
+          let newLeft = initialLeft + e.clientX - initialX;
+          let newTop = initialTop + e.clientY - initialY;
+          // Set the window position
+          windowElement.style.left = newLeft + 'px';
+          windowElement.style.top = newTop + 'px';
+        };
+        // Stop dragging when mouse button is released
+        document.onmouseup = function() {
+          document.onmousemove = null;
+          document.onmouseup = null;
+        };
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake OS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="desktop">
+        <div id="taskbar">
+            <button onclick="openFileSystem()">File System</button>
+            <button onclick="createFileOrFolder()">Create File/Folder</button>
+        </div>
+    </div>
+
+    <div id="file-system" class="window">
+        <div class="window-title">
+            <span id="window-title">File System</span>
+            <button onclick="closeWindow('file-system')">X</button>
+        </div>
+        <div class="window-body">
+            <ul id="file-list"></ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
