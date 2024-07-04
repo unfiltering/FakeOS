@@ -313,6 +313,69 @@
         resize: none;
         /* Prevent resizing of the textarea */
       }
+
+      #code-editor {
+        background: #1A1A1A;
+        border: 1px solid #000;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        width: 300px;
+        height: 200px;
+        display: none;
+        z-index: 100;
+      }
+
+      #code-editor.minimized {
+        display: none;
+      }
+
+      #code-editor .window-title {
+        background: #333;
+        color: white;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        font-weight: bold;
+        user-select: none;
+        cursor: move;
+      }
+
+      #code-editor .window-title button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        outline: none;
+      }
+
+      #code-editor .window-title button:hover {
+        background: #555;
+      }
+
+      #code-editor .window-body button {
+        padding: 2px 10px;
+        background: #444;
+        color: #FFF;
+      }
+
+      #code-editor-text {
+        width: 100%;
+        height: 82%;
+        border: none;
+        outline: none;
+        padding: 0px;
+        color: #FFF;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        background: #222;
+        resize: none;
+        /* Prevent resizing of the textarea */
+      }
     </style>
   </head>
   <body>
@@ -342,7 +405,21 @@
       <div class="window-body">
         <button onclick="openFileInNotepad()">Open File</button>
         <button onclick="saveNotepad()">Save File</button>
-        <textarea id="notepad-text" style="width: 100%; height: 88%; border: none; outline: none; padding: 0px; font-family: Arial, sans-serif; font-size: 14px;"></textarea>
+        <button onclick="openCodeEditor()">Code Editor</button>
+        <textarea id="notepad-text" placeholder="Write some text, plain text, anything! [.txt, .json, .raw, .data]" style="width: 100%; height: 88%; border: none; outline: none; padding: 0px; font-family: Arial, sans-serif; font-size: 14px;"></textarea>
+      </div>
+    </div>
+    <div class="window" id="code-editor" style="left: 512px; top: 312px;">
+      <div class="window-title draggable" onmousedown="dragMouseDown(event)">
+        <span id="code-editor-title">Code Editor</span>
+        <button onclick="minimizeWindow('code-editor')">-</button>
+        <button onclick="closeWindow('code-editor')">X</button>
+      </div>
+      <div class="window-body">
+        <button onclick="openNotepad()">←</button>
+        <button onclick="openFileInCodeEditor()">Open File</button>
+        <button onclick="saveCodeEditor()">Save File</button>
+        <textarea id="code-editor-text" placeholder="Write some javascript here, run the file to see it! [.ch, .exe]" style="width: 100%; height: 88%; border: none; outline: none; padding: 0px; font-family: Arial, sans-serif; font-size: 14px;"></textarea>
       </div>
     </div>
     <div id="alert-modal" class="modal">
@@ -417,7 +494,9 @@
         rootIcon.className = 'icon';
         rootIcon.style = 'position: relative; text-align: center;'
         rootIcon.onclick = goToRoot;
-        rootIcon.innerHTML = `<img src="https://i.imgur.com/6y3bHsn_d.webp?maxwidth=760&fidelity=grand" class="drive-icon" alt="Drive"><div class="file-name">F:/</div>`;
+        rootIcon.innerHTML = `
+						<img src="https://i.imgur.com/6y3bHsn_d.webp?maxwidth=760&fidelity=grand" class="drive-icon" alt="Drive">
+							<div class="file-name">F:/</div>`;
         files.forEach(file => {
           if (isInCurrentDirectory(file.path)) {
             let listItem = document.createElement('li');
@@ -437,7 +516,7 @@
         // Dynamically add icons to desktop
         const desktopIconsContainer = document.getElementById('desktop');
         desktopIconsContainer.innerHTML = ''; // Clear existing icons
-	desktopIconsContainer.appendChild(rootIcon);
+        desktopIconsContainer.appendChild(rootIcon);
         files.forEach(file => {
           if (isInCurrentDirectory(file.path)) {
             const icon = document.createElement('div');
@@ -500,10 +579,10 @@
       function showAlert(title, message, inputRequired = false, callback = null) {
         console.log("Showing alert:", message);
         const modal = document.getElementById('alert-modal');
-	const alertTitle = document.getElementById('alert-title');
+        const alertTitle = document.getElementById('alert-title');
         const alertMessage = document.getElementById('alert-message');
         const alertInput = document.getElementById('alert-input');
-	alertTitle.textContent = title;
+        alertTitle.textContent = title;
         alertMessage.textContent = message;
         alertInput.style.display = inputRequired ? 'block' : 'none';
         alertInput.value = ''; // Clear any previous input
@@ -613,7 +692,7 @@
       }
 
       function runExe(fileName) {
-        console.log("Attempting to run:", fileName);
+        console.log("Running", fileName);
         let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
         let file = files.find(file => file.name === fileName && isInCurrentDirectory(file.path));
         if (file && file.code) {
@@ -621,8 +700,9 @@
             eval(file.code); // Assuming file.code contains the script to be executed
             console.log("Execution successful.");
           } catch (error) {
+            showAlert("Error!", "Error executing script: " + error, false);
             console.error("Error executing script:", error);
-            showAlert("Error executing script: " + error, false);
+            return
           }
         } else {
           showAlert("Executable file '" + fileName + "' not found or does not contain executable code.", false);
@@ -637,6 +717,7 @@
 
       function openNotepad() {
         document.getElementById('notepad').style.display = 'flex';
+        document.getElementById('code-editor').style.display = 'none';
         restoreWindow('notepad');
       }
 
@@ -659,8 +740,12 @@
       // Function to save text to a file in Notepad
       function saveNotepad() {
         let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
-        showAlert("Enter file name to save", true, (fileName) => {
+        showAlert("Notepad", "Enter file name to save", true, (fileName) => {
           if (fileName) {
+            if (!fileName.endsWith(".ch") || fileName.endsWith(".exe")) {
+              alert("Error creating file: code file types must end in '.txt', '.json', '.data', or '.raw'.", false);
+              return
+            }
             let path = 'F:/' + currentDirectory.join('/');
             if (!path.endsWith('/')) {
               path += '/';
@@ -687,7 +772,67 @@
             loadFileSystem(); // Update file system after saving
           }
         });
-      } // Function to check if file path is in current directory
+      }
+
+      function openCodeEditor() {
+        document.getElementById('notepad').style.display = 'none';
+        document.getElementById('code-editor').style.display = 'flex';
+        restoreWindow('code-editor');
+      }
+
+      function openFileInCodeEditor() {
+        let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+        let fileName = prompt("Enter file name to open:");
+        if (fileName) {
+          let path = 'F:/' + currentDirectory.join('/');
+          if (!path.endsWith('/')) {
+            path += '/';
+          }
+          let file = files.find(file => file.name === fileName && file.path === path);
+          if (file && file.code) {
+            document.getElementById('code-editor-text').value = file.code;
+          } else {
+            alert(`File '${fileName}' not found or has no code.`);
+          }
+        }
+      }
+
+      function saveCodeEditor() {
+        let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+        showAlert("Code Editor", "Enter file name to save", true, (fileName) => {
+          if (fileName) {
+            if (!fileName.endsWith(".ch") || fileName.endsWith(".exe")) {
+              alert("Error creating file: code file types must end in '.ch' or '.exe'", false);
+              return
+            }
+            let path = 'F:/' + currentDirectory.join('/');
+            if (!path.endsWith('/')) {
+              path += '/';
+            }
+            // Check if the file already exists
+            if (files.some(file => file.name === fileName && file.path === path)) {
+              if (!confirm(`File '${fileName}' already exists. Do you want to overwrite it?`)) {
+                return;
+              }
+            }
+            // Create or update the file
+            let existingFile = files.find(file => file.name === fileName && file.path === path);
+            if (existingFile) {
+              existingFile.code = document.getElementById('code-editor-text').value;
+            } else {
+              files.push({
+                name: fileName,
+                path: path,
+                code: document.getElementById('code-editor-text').value
+              });
+            }
+            localStorage.setItem('fakeOS_files', JSON.stringify(files));
+            console.log(`File saved: ${fileName} at ${path}`);
+            loadFileSystem(); // Update file system after saving
+          }
+        });
+      }
+      // Function to check if file path is in current directory
       function isInCurrentDirectory(filePath) {
         // Handle root directory case
         if (currentDirectory.length === 0) {
