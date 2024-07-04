@@ -742,7 +742,7 @@
         let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
         showAlert("Notepad", "Enter file name to save", true, (fileName) => {
           if (fileName) {
-            if (!fileName.endsWith(".ch") || fileName.endsWith(".exe")) {
+            if (!fileName.endsWith(".txt") || fileName.endsWith(".json") || fileName.endsWith(".data") || fileName.endsWith(".raw")) {
               alert("Error creating file: code file types must end in '.txt', '.json', '.data', or '.raw'.", false);
               return
             }
@@ -801,8 +801,8 @@
         let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
         showAlert("Code Editor", "Enter file name to save", true, (fileName) => {
           if (fileName) {
-            if (!fileName.endsWith(".ch") || fileName.endsWith(".exe")) {
-              alert("Error creating file: code file types must end in '.ch' or '.exe'", false);
+            if (!fileName.endsWith(".ch") || fileName.endsWith(".ex")) {
+              alert("Error creating file: code file types must end in '.ch' or '.ex'", false);
               return
             }
             let path = 'F:/' + currentDirectory.join('/');
