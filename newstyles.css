@@ -1,0 +1,345 @@
+ body, html {
+     margin: 0;
+     padding: 0;
+     height: 100%;
+     font-family: Arial, sans-serif;
+     background: url('https://d7hftxdivxxvm.cloudfront.net/?quality=80&resize_to=width&src=https%3A%2F%2Fartsy-media-uploads.s3.amazonaws.com%2F2RNK1P0BYVrSCZEy_Sd1Ew%252F3417757448_4a6bdf36ce_o.jpg&width=910') no-repeat center center fixed;
+     background-size: cover;
+}
+ #desktop {
+     width: 100%;
+     height: calc(100% - 50px);
+    /* Height minus taskbar height */
+     position: relative;
+     overflow: hidden;
+    /* Hide overflow from taskbar */
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    /* Responsive grid layout */
+     gap: 20px;
+    /* Gap between icons */
+     padding: 20px;
+    /* Padding around the grid */
+}
+ .icon {
+     text-align: center;
+     cursor: pointer;
+     position: relative;
+}
+ .file-icon, .folder-icon, .exe-icon, .drive-icon {
+     width: 80px;
+     height: auto;
+}
+ .file-name {
+     color: white;
+     font-size: 12px;
+     margin-top: 5px;
+}
+ #taskbar {
+     background: #1A1A1A;
+     height: 50px;
+     width: 100%;
+     position: fixed;
+     bottom: 0;
+     display: flex;
+     align-items: center;
+     justify-content: start;
+     padding: 0 10px;
+     box-shadow: 0px -3px 10px rgba(0, 0, 0, 0.3);
+     z-index: 1000;
+    /* Ensure taskbar is above other elements */
+}
+ #taskbar.active {
+     background: #343434;
+    /* Darker shade to indicate active state */
+}
+ #taskbar button {
+     margin-right: 10px;
+     color: white;
+     background: #2D2D2D;
+     border: none;
+     padding: 10px;
+     cursor: pointer;
+     font-size: 14px;
+     font-weight: bold;
+     outline: none;
+     user-select: none;
+    /* Prevent text selection */
+}
+ .window {
+     background: #fff;
+     border: 1px solid #ccc;
+     position: absolute;
+     top: 50px;
+     left: 50px;
+     width: 300px;
+     display: none;
+     flex-direction: column;
+     z-index: 100;
+}
+ .window-body {
+     height: 100%;
+    /* Ensure the body fills the entire window */
+}
+ .window-body textarea {
+     width: 100%;
+     height: 80%;
+    /* Fixed height to prevent resizing */
+     border: none;
+     outline: none;
+     padding: 10px;
+     font-family: 'Arial', sans-serif;
+     font-size: 14px;
+}
+ .window.minimized {
+     display: none;
+}
+ .window-title {
+     background: #0078D7;
+     color: white;
+     padding: 8px 12px;
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     font-size: 14px;
+     font-weight: bold;
+     user-select: none;
+     cursor: move;
+}
+ .window-title button {
+     background: none;
+     border: none;
+     color: white;
+     cursor: pointer;
+     font-size: 16px;
+     font-weight: bold;
+     outline: none;
+}
+ .window-title button:hover {
+     background: #005DAD;
+}
+ .window-title button:nth-child(2) {
+     margin-left: auto;
+    /* Moves the minimize button to the far right */
+}
+/* Styles for the "Create File" button */
+ .window-body button {
+     color: black;
+     background-color: rgb(0 0 0 / 24%);
+     border: none;
+     padding: 10px 13px;
+     cursor: pointer;
+     font-size: 13px;
+     font-weight: bold;
+     outline: none;
+}
+ .window-body button:hover {
+     background-color: #005DAD;
+}
+/* Styles for the separating line */
+ .window-body hr {
+     border-top: 1px solid #ccc;
+    /* Adjust as needed */
+     margin-top: 0px;
+     margin-bottom: 0px;
+}
+ .folder {
+     font-weight: bold;
+     cursor: pointer;
+}
+ .modal {
+     display: none;
+     position: fixed;
+     z-index: 1001;
+     left: 0;
+     top: 0;
+     width: 100%;
+     height: 100%;
+     overflow: auto;
+     background-color: rgba(0, 0, 0, 0.4);
+}
+ .modal-content {
+     background-color: #fefefe;
+     margin: 15% auto;
+     padding: 20px;
+     border: 1px solid #888;
+     width: 80%;
+     max-width: 400px;
+     box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
+     border-radius: 10px;
+}
+ .modal-header {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding-bottom: 10px;
+     border-bottom: 1px solid #ddd;
+}
+ .modal-header button {
+     background: none;
+     border: none;
+     font-size: 16px;
+     cursor: pointer;
+}
+ .modal-body {
+     padding: 10px 0;
+}
+ .modal-body input {
+     width: 100%;
+     padding: 8px;
+     margin-top: 10px;
+}
+ .modal-footer {
+     display: flex;
+     justify-content: flex-end;
+     gap: 10px;
+}
+ .modal-footer button {
+     padding: 10px 20px;
+     font-size: 14px;
+     cursor: pointer;
+}
+ ul {
+     list-style: none;
+     padding: 0;
+     margin: 0;
+}
+ li {
+     padding: 8px 12px;
+     border-bottom: 1px solid #ccc;
+     cursor: pointer;
+     font-size: 14px;
+}
+ li:hover {
+     background: #f0f0f0;
+}
+ #notepad {
+     background: #fff;
+     border: 1px solid #ccc;
+     position: absolute;
+     top: 50px;
+     left: 50px;
+     width: 300px;
+     height: 200px;
+     display: none;
+     z-index: 100;
+}
+ #notepad.minimized {
+     display: none;
+}
+ #notepad .window-title {
+     background: #0078d7;
+     color: white;
+     padding: 8px 12px;
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     font-size: 14px;
+     font-weight: bold;
+     user-select: none;
+     cursor: move;
+}
+ #notepad .window-title button {
+     background: none;
+     border: none;
+     color: white;
+     cursor: pointer;
+     font-size: 16px;
+     font-weight: bold;
+     outline: none;
+}
+ #notepad .window-title button:hover {
+     background: #005dad;
+}
+ #notepad .window-body button {
+     padding: 2px 10px;
+}
+ #notepad-text {
+     width: 100%;
+     height: 82%;
+     border: none;
+     outline: none;
+     padding: 0px;
+     font-family: 'Arial', sans-serif;
+     font-size: 14px;
+     resize: none;
+    /* Prevent resizing of the textarea */
+}
+ #code-editor {
+     background: #1A1A1A;
+     border: 1px solid #000;
+     position: absolute;
+     top: 50px;
+     left: 50px;
+     width: 300px;
+     height: 200px;
+     display: none;
+     z-index: 100;
+}
+ #code-editor.minimized {
+     display: none;
+}
+ #code-editor .window-title {
+     background: #333;
+     color: white;
+     padding: 8px 12px;
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     font-size: 14px;
+     font-weight: bold;
+     user-select: none;
+     cursor: move;
+}
+ #code-editor .window-title button {
+     background: none;
+     border: none;
+     color: white;
+     cursor: pointer;
+     font-size: 16px;
+     font-weight: bold;
+     outline: none;
+}
+ #code-editor .window-title button:hover {
+     background: #555;
+}
+ #code-editor .window-body button {
+     padding: 2px 10px;
+     background: #444;
+     color: #FFF;
+}
+ #code-editor-text {
+     width: 100%;
+     height: 82%;
+     border: none;
+     outline: none;
+     padding: 0px;
+     color: #FFF;
+     font-family: 'Arial', sans-serif;
+     font-size: 14px;
+     background: #222;
+     resize: none;
+    /* Prevent resizing of the textarea */
+}
+/* Context menu styles */
+ .context-menu {
+     position: absolute;
+     z-index: 1000;
+     background: #fff;
+     border: 1px solid #ccc;
+     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+     display: none;
+}
+ .context-menu ul {
+     list-style: none;
+     padding: 0;
+     margin: 0;
+}
+ .context-menu li {
+     padding: 8px 12px;
+     cursor: pointer;
+     font-size: 14px;
+}
+ .context-menu li:hover {
+     background: #f0f0f0;
+}
