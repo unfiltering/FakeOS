@@ -4,382 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fake OS</title>
-    <style>
-      body,
-      html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        font-family: Arial, sans-serif;
-        background: url('https://d7hftxdivxxvm.cloudfront.net/?quality=80&resize_to=width&src=https%3A%2F%2Fartsy-media-uploads.s3.amazonaws.com%2F2RNK1P0BYVrSCZEy_Sd1Ew%252F3417757448_4a6bdf36ce_o.jpg&width=910') no-repeat center center fixed;
-        background-size: cover;
-      }
-
-      #desktop {
-        width: 100%;
-        height: calc(100% - 50px);
-        /* Height minus taskbar height */
-        position: relative;
-        overflow: hidden;
-        /* Hide overflow from taskbar */
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        /* Responsive grid layout */
-        gap: 20px;
-        /* Gap between icons */
-        padding: 20px;
-        /* Padding around the grid */
-      }
-
-      .icon {
-        text-align: center;
-        cursor: pointer;
-        position: relative;
-      }
-
-      .file-icon,
-      .folder-icon,
-      .exe-icon,
-      .drive-icon {
-        width: 80px;
-        height: auto;
-      }
-
-      .file-name {
-        color: white;
-        font-size: 12px;
-        margin-top: 5px;
-      }
-
-      #taskbar {
-        background: #1A1A1A;
-        height: 50px;
-        width: 100%;
-        position: fixed;
-        bottom: 0;
-        display: flex;
-        align-items: center;
-        justify-content: start;
-        padding: 0 10px;
-        box-shadow: 0px -3px 10px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-        /* Ensure taskbar is above other elements */
-      }
-
-      #taskbar.active {
-        background: #343434;
-        /* Darker shade to indicate active state */
-      }
-
-      #taskbar button {
-        margin-right: 10px;
-        color: white;
-        background: #2D2D2D;
-        border: none;
-        padding: 10px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: bold;
-        outline: none;
-        user-select: none;
-        /* Prevent text selection */
-      }
-
-      .window {
-        background: #fff;
-        border: 1px solid #ccc;
-        position: absolute;
-        top: 50px;
-        left: 50px;
-        width: 300px;
-        display: none;
-        flex-direction: column;
-        z-index: 100;
-      }
-
-      .window-body {
-        height: 100%;
-        /* Ensure the body fills the entire window */
-      }
-
-      .window-body textarea {
-        width: 100%;
-        height: 80%;
-        /* Fixed height to prevent resizing */
-        border: none;
-        outline: none;
-        padding: 10px;
-        font-family: 'Arial', sans-serif;
-        font-size: 14px;
-      }
-
-      .window.minimized {
-        display: none;
-      }
-
-      .window-title {
-        background: #0078D7;
-        color: white;
-        padding: 8px 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 14px;
-        font-weight: bold;
-        user-select: none;
-        cursor: move;
-      }
-
-      .window-title button {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        outline: none;
-      }
-
-      .window-title button:hover {
-        background: #005DAD;
-      }
-
-      .window-title button:nth-child(2) {
-        margin-left: auto;
-        /* Moves the minimize button to the far right */
-      }
-
-      /* Styles for the "Create File" button */
-      .window-body button {
-        color: black;
-        background-color: rgb(0 0 0 / 24%);
-        border: none;
-        padding: 10px 13px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: bold;
-        outline: none;
-      }
-
-      .window-body button:hover {
-        background-color: #005DAD;
-      }
-
-      /* Styles for the separating line */
-      .window-body hr {
-        border-top: 1px solid #ccc;
-        /* Adjust as needed */
-        margin-top: 0px;
-        margin-bottom: 0px;
-      }
-
-      .folder {
-        font-weight: bold;
-        cursor: pointer;
-      }
-
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1001;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
-      }
-
-      .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 400px;
-        box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
-        border-radius: 10px;
-      }
-
-      .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #ddd;
-      }
-
-      .modal-header button {
-        background: none;
-        border: none;
-        font-size: 16px;
-        cursor: pointer;
-      }
-
-      .modal-body {
-        padding: 10px 0;
-      }
-
-      .modal-body input {
-        width: 100%;
-        padding: 8px;
-        margin-top: 10px;
-      }
-
-      .modal-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-      }
-
-      .modal-footer button {
-        padding: 10px 20px;
-        font-size: 14px;
-        cursor: pointer;
-      }
-
-      ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-
-      li {
-        padding: 8px 12px;
-        border-bottom: 1px solid #ccc;
-        cursor: pointer;
-        font-size: 14px;
-      }
-
-      li:hover {
-        background: #f0f0f0;
-      }
-
-      #notepad {
-        background: #fff;
-        border: 1px solid #ccc;
-        position: absolute;
-        top: 50px;
-        left: 50px;
-        width: 300px;
-        height: 200px;
-        display: none;
-        z-index: 100;
-      }
-
-      #notepad.minimized {
-        display: none;
-      }
-
-      #notepad .window-title {
-        background: #0078d7;
-        color: white;
-        padding: 8px 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 14px;
-        font-weight: bold;
-        user-select: none;
-        cursor: move;
-      }
-
-      #notepad .window-title button {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        outline: none;
-      }
-
-      #notepad .window-title button:hover {
-        background: #005dad;
-      }
-
-      #notepad .window-body button {
-        padding: 2px 10px;
-      }
-
-      #notepad-text {
-        width: 100%;
-        height: 82%;
-        border: none;
-        outline: none;
-        padding: 0px;
-        font-family: 'Arial', sans-serif;
-        font-size: 14px;
-        resize: none;
-        /* Prevent resizing of the textarea */
-      }
-
-      #code-editor {
-        background: #1A1A1A;
-        border: 1px solid #000;
-        position: absolute;
-        top: 50px;
-        left: 50px;
-        width: 300px;
-        height: 200px;
-        display: none;
-        z-index: 100;
-      }
-
-      #code-editor.minimized {
-        display: none;
-      }
-
-      #code-editor .window-title {
-        background: #333;
-        color: white;
-        padding: 8px 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 14px;
-        font-weight: bold;
-        user-select: none;
-        cursor: move;
-      }
-
-      #code-editor .window-title button {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        outline: none;
-      }
-
-      #code-editor .window-title button:hover {
-        background: #555;
-      }
-
-      #code-editor .window-body button {
-        padding: 2px 10px;
-        background: #444;
-        color: #FFF;
-      }
-
-      #code-editor-text {
-        width: 100%;
-        height: 82%;
-        border: none;
-        outline: none;
-        padding: 0px;
-        color: #FFF;
-        font-family: 'Arial', sans-serif;
-        font-size: 14px;
-        background: #222;
-        resize: none;
-        /* Prevent resizing of the textarea */
-      }
-    </style>
+    <link rel="stylesheet" href="newstyles.css">
   </head>
   <body>
     <div id="desktop"></div>
+    <div id="context-menu" class="context-menu">
+      <ul>
+        <li id="open-file">Open File</li>
+        <li id="run-file">Run File</li>
+        <li id="edit-code">Edit Code</li>
+        <li id="edit-file">Edit File</li>
+        <li id="rename-file">Rename File</li>
+        <li id="delete-file">Delete File</li>
+      </ul>
+    </div>
     <div id="taskbar">
       <button onclick="openFileSystem()">File System</button>
       <button onclick="openNotepad()">Notepad</button>
@@ -419,6 +57,7 @@
         <button onclick="openNotepad()">←</button>
         <button onclick="openFileInCodeEditor()">Open File</button>
         <button onclick="saveCodeEditor()">Save File</button>
+        <button onclick="testProgram()">Test Code</button>
         <textarea id="code-editor-text" placeholder="Write some javascript here, run the file to see it! [.ch, .exe]" style="width: 100%; height: 88%; border: none; outline: none; padding: 0px; font-family: Arial, sans-serif; font-size: 14px;"></textarea>
       </div>
     </div>
@@ -495,8 +134,9 @@
         rootIcon.style = 'position: relative; text-align: center;'
         rootIcon.onclick = goToRoot;
         rootIcon.innerHTML = `
-						<img src="https://i.imgur.com/6y3bHsn_d.webp?maxwidth=760&fidelity=grand" class="drive-icon" alt="Drive">
-							<div class="file-name">F:/</div>`;
+						
+							<img src="https://i.imgur.com/6y3bHsn_d.webp?maxwidth=760&fidelity=grand" class="drive-icon" alt="Drive">
+								<div class="file-name">F:/</div>`;
         files.forEach(file => {
           if (isInCurrentDirectory(file.path)) {
             let listItem = document.createElement('li');
@@ -679,9 +319,9 @@
         let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
         let file = files.find(file => file.name === fileName && isInCurrentDirectory(file.path));
         if (file) {
-          alert(`File content:\n${file.data}`);
+          showAlert(`${file.path}${file.name}`, `${file.data}`, false);
         } else {
-          alert(`File '${fileName}' not found.`);
+          showAlert(`FakeOS 8 | Filesystem Error`, `File "${fileName}" not found.`, false);
         }
       }
       // Function to open folder
@@ -780,9 +420,12 @@
         restoreWindow('code-editor');
       }
 
-      function openFileInCodeEditor() {
+      function openFileInCodeEditor(fileName) {
+        console.log("Attempting to edit " + fileName)
         let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
-        let fileName = prompt("Enter file name to open:");
+        if (!fileName) {
+          fileName = prompt("Enter file name to open:")
+        };
         if (fileName) {
           let path = 'F:/' + currentDirectory.join('/');
           if (!path.endsWith('/')) {
@@ -795,6 +438,7 @@
             alert(`File '${fileName}' not found or has no code.`);
           }
         }
+        openCodeEditor()
       }
 
       function saveCodeEditor() {
@@ -831,6 +475,21 @@
             loadFileSystem(); // Update file system after saving
           }
         });
+      }
+
+      function testProgram() {
+        let program = document.getElementById('code-editor-text').value
+        if (!program) {
+          return
+        } else {
+          try {
+            eval(program)
+          } catch (error) {
+            showAlert("Error!", "Error in script: " + error, false);
+            console.error("Error executing script:", error);
+            return
+          }
+        }
       }
       // Function to check if file path is in current directory
       function isInCurrentDirectory(filePath) {
@@ -887,6 +546,99 @@
           document.onmouseup = null;
         };
       }
+      document.addEventListener('contextmenu', function(event) {
+        event.preventDefault(); // Prevent the default right-click menu
+        const contextMenu = document.getElementById('context-menu');
+        contextMenu.style.top = event.clientY + 'px';
+        contextMenu.style.left = event.clientX + 'px';
+        contextMenu.style.display = 'block';
+        const targetElement = event.target.closest('.icon'); // Find the closest icon element
+        if (targetElement) {
+          const deleteOption = document.getElementById('delete-file');
+          const renameOption = document.getElementById('rename-file');
+          const openFileOption = document.getElementById('open-file');
+          const editFileOption = document.getElementById('edit-file');
+          const runFileOption = document.getElementById('run-file');
+          const editCodeOption = document.getElementById('edit-code');
+          // Clear previous event listeners
+          deleteOption.onclick = null;
+          renameOption.onclick = null;
+          openFileOption.onclick = null;
+          editFileOption.onclick = null;
+          runFileOption.onclick = null;
+          editCodeOption.onclick = null;
+          // Determine file type
+          let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+          let fileName = targetElement.querySelector('.file-name').textContent;
+          let file = files.find(file => file.name === fileName && isInCurrentDirectory(file.path));
+          // Always have delete and rename options
+          deleteOption.onclick = () => deleteFile(targetElement);
+          renameOption.onclick = () => renameFile(targetElement);
+          // Check if it's a file
+          if (file && file.data) {
+            // Add open file and edit file options
+            openFileOption.style.display = 'block';
+            editFileOption.style.display = 'block';
+            openFileOption.onclick = () => openFile(fileName);
+            editFileOption.onclick = () => openFileInNotepad(fileName);
+          } else {
+            openFileOption.style.display = 'none';
+            editFileOption.style.display = 'none';
+          }
+          // Check if it's an executable
+          if (file && file.code) {
+            // Add run file and edit code options
+            runFileOption.style.display = 'block';
+            editCodeOption.style.display = 'block';
+            runFileOption.onclick = () => runExe(fileName);
+            editCodeOption.onclick = () => openFileInCodeEditor(fileName);
+          } else {
+            runFileOption.style.display = 'none';
+            editCodeOption.style.display = 'none';
+          }
+          // Specific handling for the desktop (no actions except create file)
+          if (targetElement.id === 'desktop') {
+            deleteOption.style.display = 'none';
+            renameOption.style.display = 'none';
+            openFileOption.style.display = 'none';
+            editFileOption.style.display = 'none';
+            runFileOption.style.display = 'none';
+            editCodeOption.style.display = 'none';
+          }
+        }
+      });
+      // Function to delete file or folder
+      function deleteFile(iconElement) {
+        const fileName = iconElement.querySelector('.file-name').textContent;
+        const confirmDelete = confirm(`Are you sure you want to delete '${fileName}'?`);
+        if (confirmDelete) {
+          let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+          let updatedFiles = files.filter(file => file.name !== fileName);
+          localStorage.setItem('fakeOS_files', JSON.stringify(updatedFiles));
+          loadFileSystem(); // Reload file system after deletion
+        }
+      }
+      // Function to rename file or folder
+      function renameFile(iconElement) {
+        const fileNameElement = iconElement.querySelector('.file-name');
+        const currentName = fileNameElement.textContent;
+        const newName = prompt('Enter new name:', currentName);
+        if (newName && newName !== currentName) {
+          let files = JSON.parse(localStorage.getItem('fakeOS_files')) || [];
+          let fileToUpdate = files.find(file => file.name === currentName);
+          if (fileToUpdate) {
+            fileToUpdate.name = newName;
+            localStorage.setItem('fakeOS_files', JSON.stringify(files));
+            loadFileSystem(); // Reload file system after renaming
+          }
+        }
+      }
+      document.addEventListener('click', function(event) {
+        const contextMenu = document.getElementById('context-menu');
+        if (!event.target.closest('#context-menu') && contextMenu.style.display === 'block') {
+          contextMenu.style.display = 'none';
+        }
+      });
     </script>
   </body>
 </html>
